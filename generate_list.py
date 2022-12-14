@@ -8,14 +8,15 @@ list = [
 ]
 
 topic_code = {
-'%#matrix': 1,
-'%#system': 2,
-'%#permutation': 3,
-'%#determinant': 4,
-'%#complex': 5,
-'%#polynomial': 6,
+'%#vector': 1,
+'%#rank': 2,
+'%#operators': 3,
+'%#spectral': 4,
+'%#functional': 5,
+'%#bilinear': 6,
+'%#euclidian': 7,
 }
-topics = [1,2,3,4,5,6]	
+topics = [1,2,3,4,5,6,7]	
 
 def data_extract(filename):
 	with open(filename) as file_handler:
@@ -27,7 +28,7 @@ def data_extract(filename):
 		return result
 
 def_list    = data_extract("List_def.tex")
-#def2_list   = data_extract() #in the First test there are no def2
+def2_list   = data_extract("List_def2.tex") #in the Second test there is def2
 form_list   = data_extract("List_formulate.tex")
 clever_list = data_extract("List_clever.tex")
 proof_list  = data_extract("List_proof.tex")
@@ -36,14 +37,16 @@ proof_list  = data_extract("List_proof.tex")
 def check_l (l):
 	if (l[0]==l[1]):#we pick 0 and 1 from the same list so they can coincide
 		return False
-	contents=[def_list[l[0]-1],def_list[l[1]-1],form_list[l[2]-1],clever_list[l[3]-1],proof_list[l[4]-1]]
+	contents=[def_list[l[0]-1],def2_list[l[1]-1],form_list[l[2]-1],clever_list[l[3]-1],proof_list[l[4]-1]]
 	if ((contents[3]==contents[4]) or (contents[1]==contents[0])): #if the first two or last two questions have the same topic, that is bad
 		return False
-	if (contents.count(5)+contents.count(6)<1):#there should be at least something about complex numbers (or at least polynomials)
+	if (contents.count(1)+contents.count(2)<1):#there should be at least something about vector spaces or ranks
 		return False
-	if (contents.count(4)<1):                  #at least smth about determinants
+	if (contents.count(3)+contents.count(5)<1):          #at least smth about operators or covectors
 		return False
-	if (contents.count(0)+contents.count(2)<1):#at least smth about matrices or systems
+	if (contents.count(4)<1):          #at least smth about spectral
+		return False
+	if (contents.count(6)+contents.count(7)<1):  #at least smth about bilinear or euclidian
 		return False
 	for i in topics:
 		if (contents.count(i) > 2):#there should not be 3 questions on the same topic
@@ -60,11 +63,7 @@ while(i<100):
 	random.seed(seed)
 	l=[]
 	l.append(random.randint(1,len(def_list)))
-	l.append(random.randint(1,len(def_list))) #in First test we use the same list twice
-	if (l[0]>l[1]):
-		x = l[0]
-		l[0]=l[1]
-		l[1]=x
+	l.append(random.randint(1,len(def2_list))) #in Second test def2 exists
 	l.append(random.randint(1,len(form_list)))
 	l.append(random.randint(1,len(clever_list)))
 	l.append(random.randint(1,len(proof_list)))

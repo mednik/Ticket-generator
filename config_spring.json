@@ -1,0 +1,28 @@
+{
+    "exam_name": "Коллоквиум 2. Линейная алгебра, КНАД.",
+    "output_folder_prefix": "version_spring",
+    "base_data_path": "../Весна/",
+    "input_file_map": {
+        "def1": "Определения.tex",
+        "def2": "Определения.tex",
+        "formulate": "Формулировки.tex",
+        "algorithm": "Алгоритмы.tex",
+        "proof1": "Доказательства_лёгкие.tex",
+        "proof2": "Доказательства_сложные.tex"
+    },
+    "topic_codes": {
+        "%#operator": "operator",
+        "%#spectral": "spectral",
+        "%#bilinear": "bilinear",
+        "%#euclid": "euclid"
+    },
+    "topic_rules": {
+        "required_min_counts": {
+            "operator": 1,
+            "spectral": 1,
+            "bilinear": 1,
+            "euclid": 1
+        },
+        "max_count_per_topic": 2
+    }
+}

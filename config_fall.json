@@ -1,0 +1,40 @@
+{
+    "exam_name": "Коллоквиум 1. Линейная алгебра, КНАД.",
+    "output_folder_prefix": "version_fall",
+    "base_data_path": "../Осень/",
+    "input_file_map": {
+        "def1": "Определения.tex",
+        "def2": "Определения.tex",
+        "formulate": "Формулировки.tex",
+        "algorithm": "Алгоритмы.tex",
+        "proof1": "Доказательства_лёгкие.tex",
+        "proof2": "Доказательства_сложные.tex"
+    },
+    "topic_codes": {
+        "%#matrix": "matrices",
+        "%#system": "systems",
+        "%#permutation": "permutations",
+        "%#determinant": "determinants",
+        "%#complex": "complex numbers",
+        "%#vector": "vector spaces"
+    },
+    "topic_rules": {
+        "required_min_counts": {
+            "complex numbers": 1,
+            "vector spaces": 1
+        },
+        "combined_requirements": [
+            {
+                "name": "determinant_category",
+                "topics": ["permutations", "determinants"],
+                "min_count": 1
+            },
+            {
+                "name": "matrix_category",
+                "topics": ["matrices", "systems"],
+                "min_count": 1
+            }
+        ],
+        "max_count_per_topic": 2
+    }
+}

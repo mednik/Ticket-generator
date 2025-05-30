@@ -6,11 +6,12 @@ import json
 from pathlib import Path
 import logging
 import subprocess
+import numpy as np
 
 # Constants
 LATEX_AUX_EXTENSIONS = [".aux", ".log", ".out"]
 DEFAULT_MAX_ATTEMPTS = 10000000
-DEFAULT_SEED_RANGE = (100, 18273518246576125)
+DEFAULT_SEED_RANGE = (100, 2**30)
 
 # Set up logging
 # Create formatters
@@ -158,30 +159,62 @@ def check_l (l, data_topics, topic_rules):
 			
 	return True
 
-def create_ticket(seed, data, data_topics, topic_rules, max_attempts=DEFAULT_MAX_ATTEMPTS):
+class QuestionUsageTracker:
+	def __init__(self, data):
+		self.usage_counts = {key: [0] * len(questions) for key, questions in data.items()}
+		self.decay_factor = 0.5  # How much to reduce probability after each use
+		
+	def get_weights(self, key):
+		# Convert usage counts to weights (higher usage = lower weight)
+		counts = np.array(self.usage_counts[key])
+		weights = np.exp(-self.decay_factor * counts)
+		return weights / weights.sum()  # Normalize to sum to 1
+		
+	def update_usage(self, ticket):
+		for key, index in ticket.items():
+			if key != 'seed':
+				self.usage_counts[key][index - 1] += 1
+				
+	def log_usage_counts(self):
+		logger.info("Question usage counts:")
+		for key in self.usage_counts:
+			logger.info(f"{key}: {self.usage_counts[key]}")
+
+def create_ticket(seed, data, data_topics, topic_rules, usage_tracker, max_attempts=DEFAULT_MAX_ATTEMPTS):
 	random.seed(seed)
+	np.random.seed(seed)  # Seed NumPy's random number generator
 	
 	for _ in range(max_attempts):
-		l = {key: random.randint(1, len(data[key])) for key in data}
+		# Use weighted random selection based on usage history
+		l = {}
+		for key in data:
+			weights = usage_tracker.get_weights(key)
+			l[key] = np.random.choice(len(data[key]), p=weights) + 1  # +1 because indices are 1-based
+			
 		l['def1'], l['def2'] = sorted([l['def1'], l['def2']])
 		l['seed'] = seed
 		
 		if check_l(l, data_topics, topic_rules):
+			usage_tracker.update_usage(l)
 			return l
 	raise ValueError(f"Could not generate valid ticket after {max_attempts} attempts")
 
 def create_many_tickets (initial_seed, data, data_topics, num_required_tickets, topic_rules):
 	random.seed(initial_seed)
 	ticket_list = []
+	usage_tracker = QuestionUsageTracker(data)
 	
 	for i in tqdm(range(num_required_tickets), desc="Generating tickets"):
 		try:
 			seed = random.randint(*DEFAULT_SEED_RANGE)
-			ticket = create_ticket(seed, data, data_topics, topic_rules)
+			ticket = create_ticket(seed, data, data_topics, topic_rules, usage_tracker)
 			ticket_list.append(ticket)
 		except ValueError as e:
 			logger.error(f"Failed to generate ticket {i+1}: {str(e)}")
 			raise
+	
+	# Log raw usage counts after generating all tickets
+	usage_tracker.log_usage_counts()
 			
 	return ticket_list
 
@@ -242,7 +275,7 @@ def main():
 		config = json.load(f)
 	logger.info("Configuration loaded successfully")
 	
-	version = 2 # increase this if you want to get more tickets without erasing previous!
+	version = 4 # increase this if you want to get more tickets without erasing previous!
 
 	# Build input filenames from config
 	input_filenames = {}
